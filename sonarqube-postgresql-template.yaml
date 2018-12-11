@@ -2,68 +2,68 @@ kind: Template
 apiVersion: v1
 metadata:
   annotations:
-    description: The SonarQube OpenShift template
-    tags: instant-app,sonarqube
-  name: sonarqube
-message: "Login to SonarQube with the default admin user: admin/admin"
+    description: The sonarqube-postgresql OpenShift template
+    tags: instant-app,sonarqube-postgresql
+  name: sonarqube-postgresql
+message: "Login to sonarqube-postgresql with the default admin user: admin/admin"
 objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: sonarqube
+    name: sonarqube-postgresql
     labels:
-      app: sonarqube
+      app: sonarqube-postgresql
   spec:
     ports:
-    - name: sonarqube
+    - name: sonarqube-postgresql
       port: 9000
       protocol: TCP
       targetPort: 9000
     selector:
-      app: sonarqube
-      deploymentconfig: sonarqube
+      app: sonarqube-postgresql
+      deploymentconfig: sonarqube-postgresql
     sessionAffinity: None
     type: ClusterIP
 - apiVersion: v1
   kind: Route
   metadata:
     annotations:
-      description: Route for SonarQube's http service.
-    name: sonarqube
+      description: Route for sonarqube-postgresql's http service.
+    name: sonarqube-postgresql
     labels:
-      app: sonarqube
+      app: sonarqube-postgresql
   spec:
     to:
       kind: Service
-      name: sonarqube
+      name: sonarqube-postgresql
 - apiVersion: v1
   kind: ImageStream
   metadata:
     labels:
-      app: sonarqube
-    name: sonarqube
+      app: sonarqube-postgresql
+    name: sonarqube-postgresql
   spec:
     tags:
     - annotations:
-        description: The SonarQube Docker image
-        tags: sonarqube
+        description: The sonarqube-postgresql Docker image
+        tags: sonarqube-postgresql
       from:
         kind: DockerImage
-        name: openshiftdemos/sonarqube:${SONARQUBE_VERSION}
+        name: openshiftdemos/sonarqube-postgresql:${sonarqube-postgresql_VERSION}
       importPolicy: {}
-      name: ${SONARQUBE_VERSION}
+      name: ${sonarqube-postgresql_VERSION}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: sonarqube
-      deploymentconfig: sonarqube
-    name: sonarqube
+      app: sonarqube-postgresql
+      deploymentconfig: sonarqube-postgresql
+    name: sonarqube-postgresql
   spec:
     replicas: 1
     selector:
-      app: sonarqube
-      deploymentconfig: sonarqube
+      app: sonarqube-postgresql
+      deploymentconfig: sonarqube-postgresql
     strategy:
       resources: {}
       rollingParams:
@@ -76,23 +76,23 @@ objects:
     template:
       metadata:
         annotations:
-          openshift.io/container.sonarqube.image.entrypoint: '["./bin/run.sh"]'
+          openshift.io/container.sonarqube-postgresql.image.entrypoint: '["./bin/run.sh"]'
         creationTimestamp: null
         labels:
-          app: sonarqube
-          deploymentconfig: sonarqube
+          app: sonarqube-postgresql
+          deploymentconfig: sonarqube-postgresql
       spec:
         containers:
         - env:
-          - name: SONARQUBE_JDBC_PASSWORD
+          - name: sonarqube-postgresql_JDBC_PASSWORD
             value: ${POSTGRESQL_PASSWORD}
-          - name: SONARQUBE_JDBC_URL
-            value: jdbc:postgresql://postgresql-sonarqube/sonar
-          - name: SONARQUBE_JDBC_USERNAME
+          - name: sonarqube-postgresql_JDBC_URL
+            value: jdbc:postgresql://postgresql-sonarqube-postgresql/sonar
+          - name: sonarqube-postgresql_JDBC_USERNAME
             value: sonar
           image: ' '
           imagePullPolicy: IfNotPresent
-          name: sonarqube
+          name: sonarqube-postgresql
           ports:
           - containerPort: 9000
             protocol: TCP
@@ -123,32 +123,32 @@ objects:
               memory: 2Gi
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - mountPath: /opt/sonarqube/data
-            name: sonarqube-data
+          - mountPath: /opt/sonarqube-postgresql/data
+            name: sonarqube-postgresql-data
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         securityContext: {}
         terminationGracePeriodSeconds: 30
         volumes:
-        - name: sonarqube-data
+        - name: sonarqube-postgresql-data
           persistentVolumeClaim:
-            claimName: sonarqube-data
+            claimName: sonarqube-postgresql-data
     triggers:
     - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
-        - sonarqube
+        - sonarqube-postgresql
         from:
           kind: ImageStreamTag
-          name: sonarqube:${SONARQUBE_VERSION}
+          name: sonarqube-postgresql:${sonarqube-postgresql_VERSION}
       type: ImageChange
 - apiVersion: v1
   kind: Service
   metadata:
-    name: postgresql-sonarqube
+    name: postgresql-sonarqube-postgresql
     labels:
-      app: sonarqube
+      app: sonarqube-postgresql
   spec:
     ports:
     - name: postgresql
@@ -156,22 +156,22 @@ objects:
       protocol: TCP
       targetPort: 5432
     selector:
-      app: sonarqube
-      deploymentconfig: postgresql-sonarqube
+      app: sonarqube-postgresql
+      deploymentconfig: postgresql-sonarqube-postgresql
     sessionAffinity: None
     type: ClusterIP
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: sonarqube
-      deploymentconfig: postgresql-sonarqube
-    name: postgresql-sonarqube
+      app: sonarqube-postgresql
+      deploymentconfig: postgresql-sonarqube-postgresql
+    name: postgresql-sonarqube-postgresql
   spec:
     replicas: 1
     selector:
-      app: sonarqube
-      deploymentconfig: postgresql-sonarqube
+      app: sonarqube-postgresql
+      deploymentconfig: postgresql-sonarqube-postgresql
     strategy:
       recreateParams:
         timeoutSeconds: 600
@@ -180,8 +180,8 @@ objects:
     template:
       metadata:
         labels:
-          app: sonarqube
-          deploymentconfig: postgresql-sonarqube
+          app: sonarqube-postgresql
+          deploymentconfig: postgresql-sonarqube-postgresql
       spec:
         containers:
         - env:
@@ -234,7 +234,7 @@ objects:
         volumes:
         - name: postgresql-data
           persistentVolumeClaim:
-            claimName: postgresql-sonarqube-data
+            claimName: postgresql-sonarqube-postgresql-data
     test: false
     triggers:
     - imageChangeParams:
@@ -250,7 +250,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: postgresql-sonarqube-data
+    name: postgresql-sonarqube-postgresql-data
   spec:
     accessModes:
     - ReadWriteOnce
@@ -260,7 +260,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: sonarqube-data
+    name: sonarqube-postgresql-data
   spec:
     accessModes:
     - ReadWriteOnce
@@ -268,12 +268,12 @@ objects:
       requests:
         storage: ${SONAR_VOLUME_CAPACITY}
 parameters:
-- displayName: SonarQube version
+- displayName: sonarqube-postgresql version
   value: "6.7"
-  name: SONARQUBE_VERSION
+  name: sonarqube-postgresql_VERSION
   required: true
-- description: Password for SonarQube Server PostgreSQL backend
-  displayName: SonarQube's PostgreSQL Password
+- description: Password for sonarqube-postgresql Server PostgreSQL backend
+  displayName: sonarqube-postgresql's PostgreSQL Password
   from: '[a-zA-Z0-9]{16}'
   generate: expression
   name: POSTGRESQL_PASSWORD
@@ -283,8 +283,8 @@ parameters:
   name: POSTGRESQL_VOLUME_CAPACITY
   required: true
   value: 1Gi
-- description: Volume space available for SonarQube
-  displayName: SonarQube Volume Capacity
+- description: Volume space available for sonarqube-postgresql
+  displayName: sonarqube-postgresql Volume Capacity
   name: SONAR_VOLUME_CAPACITY
   required: true
   value: 1Gi
